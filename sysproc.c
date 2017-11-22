@@ -16,8 +16,11 @@ sys_fork(void)
 int
 sys_exit(void)
 {
-  exit();
+  //int status;	
+  //status = proc->exitStatus;
+  exit(0);
   return 0;  // not reached
+
 }
 
 int
