@@ -4,6 +4,7 @@
 #include "user.h"
 #include "fcntl.h"
 
+
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -53,6 +54,9 @@ int fork1(void);  // Fork but panics on failure.
 void panic(char*);
 struct cmd *parsecmd(char*);
 
+//GLOBAL PATH VARIABLE
+//char paths[512];
+
 // Execute cmd.  Never returns.
 void
 runcmd(struct cmd *cmd)
@@ -75,8 +79,9 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit(0);
-    exec(ecmd->argv[0], ecmd->argv);      
-//	for(0=>9) exec(ecmd->paths[i]/  <-------- ITERATE ALL PATHS
+    exec(ecmd->argv[0], ecmd->argv);
+	//TO INSERT CODE HERE:
+	//	for(0=>9) exec(ecmd->paths[i]/  <-------- ITERATE ALL PATHS
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
 
@@ -146,8 +151,7 @@ int
 main(void)
 {
   static char buf[100];
-  int fd;
-
+  int fd; 
   // Ensure that three file descriptors are open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
@@ -164,9 +168,27 @@ main(void)
       if(chdir(buf+3) < 0)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
-    }
-    
+    } 
     // if()//special case for setPath []
+    if(buf[0] == 's' && buf[1] == 'e' && buf[2] == 't' &&
+	buf[4] == 'P' && buf[5] == 'A' && buf[6] == 'T' && buf[7] == 'H'
+	) {
+	char bufW[100];
+	int file;
+	strcpy(bufW,&(buf[9]));
+	file = open("paths.h", O_CREATE |  O_WRONLY);
+	printf(file,"%s\n",bufW);
+	close(file);
+	continue;
+    }
+    if(buf[0] == 'x') {
+	int fileRd;
+	char bufR[512];
+	fileRd = open("paths.h", O_RDONLY);
+	read(fileRd, bufR, 512);
+	printf(2, "test is %s\n",bufR);
+	close(fileRd);
+    }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
     wait();
