@@ -4,7 +4,6 @@
 #include "user.h"
 #include "fcntl.h"
 
-
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -55,7 +54,7 @@ void panic(char*);
 struct cmd *parsecmd(char*);
 
 //GLOBAL PATH VARIABLE
-//char paths[512];
+char paths[10][512];
 
 // Execute cmd.  Never returns.
 void
@@ -82,6 +81,14 @@ runcmd(struct cmd *cmd)
     exec(ecmd->argv[0], ecmd->argv);
 	//TO INSERT CODE HERE:
 	//	for(0=>9) exec(ecmd->paths[i]/  <-------- ITERATE ALL PATHS
+	char temp[512];
+	for(int i=0;i<10;i++){
+		strcpy(temp,paths[i]);
+		//memmove(paths[i]+(strlen(paths[i])), ecmd->argv[0], strlen(ecmd->argv[0]));
+		//printf(2, "%s\n", paths[i]);
+		strcpy((temp+strlen(temp)), ecmd->argv[0]);
+   		exec(temp, ecmd->argv);
+    	}
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
 
@@ -99,7 +106,7 @@ runcmd(struct cmd *cmd)
     lcmd = (struct listcmd*)cmd;
     if(fork1() == 0)
       runcmd(lcmd->left);
-    wait();
+    wait(0);
     runcmd(lcmd->right);
     break;
 
@@ -123,8 +130,8 @@ runcmd(struct cmd *cmd)
     }
     close(p[0]);
     close(p[1]);
-    wait();
-    wait();
+    wait(0);
+    wait(0);
     break;
 
   case BACK:
@@ -176,8 +183,21 @@ main(void)
 	char bufW[100];
 	int file;
 	strcpy(bufW,&(buf[9]));
+	printf(1,"Creating new paths file\n");
 	file = open("paths.h", O_CREATE |  O_WRONLY);
-	printf(file,"%s\n",bufW);
+	int j = 0, k = 0;
+	for (int i =0; i< strlen(bufW); i++) {
+		if (bufW[i] == ':') {
+			printf(file,"%c", '\n');
+			j++;
+			k =0;
+		}
+		else {
+			paths[j][k] = bufW[i];
+			k++;
+			printf(file,"%c",bufW[i]);
+		}
+	}
 	close(file);
 	continue;
     }
@@ -191,7 +211,7 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
-    wait();
+    wait(0);
   }
   exit(0);
 }
