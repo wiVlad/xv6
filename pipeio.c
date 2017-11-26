@@ -8,52 +8,38 @@ char num[80]; //global char array - for easier work.
 char tempFileBuf[512];
 int tempFileFD;
 
-int isdigit (char *c){ //check if a char is a letter or number
-	if (c[0]=='0'
-		|| c[0]=='1'
-		|| c[0]=='2'
-		|| c[0]=='3'
-		|| c[0]=='4'
-		|| c[0]=='5'
-		|| c[0]=='6'
-		|| c[0]=='7'
-		|| c[0]=='8'
-		|| c[0]=='9'
-	) return 1;
-	else return 0;
-}
-int isdigit1 (char c){ //check if a char is a letter or number
-	if (c=='0'
-		|| c=='1'
-		|| c=='2'
-		|| c=='3'
-		|| c=='4'
-		|| c=='5'
-		|| c=='6'
-		|| c=='7'
-		|| c=='8'
-		|| c=='9'
-	) return 1;
-	else return 0;
-}
 
-long long int my_atoi(char *c) //convert char array to integer
-{
-	long long int value = 0;
-	int sign = 1;
-	if (c[0]=='-'){
-		sign=-1;
-		c++;
+
+
+void toArray(int number, char* numberArray)
+    {
+        int i=0, j=0;
+	int num;
+	if (number < 0) {
+		j=1;
+		numberArray[0] = '-';
+		number = -number;
 	}
-   
-	while (isdigit(c))
-	{
-		value *= 10;
-		value += (int) (*c-'0');
-		c++;
+	num = number;
+	while (num > 0) {
+		i++; num = num /10;
 	}
-	return (sign*value);
-}
+	char tempArr[i];
+	i=0;
+	while(number > 0) {
+        	tempArr[i] = number % 10 + '0';
+		number = number/10; 
+		i++;
+        }
+	i--;
+	for(int k=j; i >= 0 ; k++) {
+		numberArray[k] = tempArr[i--];
+	}
+     }
+
+
+
+
 
 
 void
@@ -73,81 +59,88 @@ pipeio(int fd, int factor, char* filename)	{
 
 	if (fork() == 0) { 
 		//first child
-		//close(0);
-		//close(1);
-		//dup(p0[0]);
-		//dup(p1[1]);
-		//close(p0[0]);
-		//close(p1[1]);
-		read(p0[0], &intbuf, sizeof(int));
+		read(p0[0], bufin, 256);
+
+		if(bufin[0] == '-')
+			intbuf=-(atoi(&bufin[1]));
+		else
+			intbuf = atoi(bufin);
+		
 		intbuf = intbuf + factor;
-		//snprintf(bufout, sizeof(bufout), "%d", value);
-		//strcpy(bufout + strlen(bufout), " world");		
-		write(p1[1], &intbuf, sizeof(int));
+		printf(1, "child 1 bufout before: %s\n", bufout);
+		toArray(intbuf, bufout);	
+		printf(1, "child 1 bufout after: %s\n", bufout);
+		write(p1[1], bufout,256);
 		close(p0[0]);
 		close(p1[1]);
 	}
 	else 	{
 		if (fork() == 0) {
 			//second child
-			//close(0);
-			//close(1);
-			//dup(p1[0]);
-			//dup(p2[1]);
-			//close(p1[0]);
-			//close(p2[1]);
-			read(p1[0], &intbuf, sizeof(int));
-			
+			read(p1[0], bufin, 256);
+			if(bufin[0] == '-')
+				intbuf=-(atoi(&bufin[1]));
+			else
+				intbuf = atoi(bufin);
+		
 			intbuf = intbuf + factor;
-			//snprintf(bufout, sizeof(bufout), "%d", value);
-			//strcpy(bufout + strlen(bufout), " world");		
-			write(p2[1],&intbuf, sizeof(int));		
+			printf(1, "child 2 bufout before: %s\n", bufout);
+			toArray(intbuf, bufout);	
+			printf(1, "child 2 bufout after: %s\n", bufout);		
+			write(p2[1],bufout, 256);		
 			close(p1[0]);
 			close(p2[1]);	
 		}
 		else 	{
 			if (fork() == 0) {
 				//third child
-				//close(0);
-				//close(1);
-				//dup(p2[0]);
-				//dup(p3[1]);
-				//close(p2[0]);
-				//close(p3[1]);
-				read(p2[0], &intbuf, sizeof(int));
-				
+				read(p2[0], bufin, 256);
+				if(bufin[0] == '-')
+					intbuf=-(atoi(&bufin[1]));
+				else
+					intbuf = atoi(bufin);
+		
 				intbuf = intbuf + factor;
-				//snprintf(bufout, sizeof(bufout), "%d", value);
-				//strcpy(bufout + strlen(bufout), " world");		
-				write(p3[1],&intbuf, sizeof(int));	
+				printf(1, "child 3 bufout before: %s\n", bufout);
+				toArray(intbuf, bufout);	
+				printf(1, "child 3 bufout after: %s\n", bufout);			
+				write(p3[1],bufout, 256);	
 				close(p2[0]);
 				close(p3[1]);
 			}
 			else {
 				//parent
-				//close(0);
-				//dup(p3[0]);
-				//dup(p0[1]);
-				//close(p3[0]);
-				//close(p0[1]);
 				read(fd,bufin, 256);
 				int k = 0;
-				while (isdigit1(bufin[k]) != 1) {
+				int i;
+				for (i= 0; i < strlen(bufin); i++) {
+					if ((int)(bufin[i]) < 58 && (int)(bufin[i]) > 47) {
+						k++;
+					}
+					else if (k>0)
+						break;
+				}
+				int value = atoi(&bufin[i-k]);
+				if(bufin[i-k-1] == '-') {
+					value = -value;
 					k++;
 				}
-				strcpy(bufout,bufin); bufout[k] = '\0';
-				long long int value = my_atoi(&bufin[k]);	
-				write(p0[1], &value, sizeof(int));
+				printf(1, "bufout before: %s\n", bufout);
+				toArray(value, bufout);
+				printf(1, "value is: %d\n", value);
+				printf(1, "bufout after: %s\n", bufout);	
+				write(p0[1], bufout, 256);
 				//wait for children				
 				wait(&status1);
 				wait(&status2);	
 				wait(&status3);
-				read(p3[0], &intbuf, sizeof(int));
-				//value = my_atoi(bufout);
-				printf(1, "%d\n", intbuf);
-				
-				strcpy(bufout+strlen(bufout), temp);
-				strcpy(bufout+strlen(bufout), &(bufin[k+sizeof(value)]));
+				strcpy(bufout,bufin); bufout[i-k] = '\0';
+				char tempArr[256];
+			
+				read(p3[0], tempArr, 256 );
+				strcpy(bufout + strlen(bufout), tempArr);
+				strcpy(bufout + strlen(bufout), &bufin[i]);
+
 				close(p3[0]);
 				close(p0[1]);
 
@@ -169,7 +162,12 @@ main(int argc, char *argv[])	{
 			printf(1, "cat: cannot open %s\n", argv[1]);
 			exit(0);  
 		}
-		factor=my_atoi(argv[2]);
+		if(argv[2][0] == '-')
+			factor=-(atoi(&argv[2][1]));
+		else
+			factor=atoi(argv[2]);
+		
+		printf(1, "factor : %d\n", factor);
 		pipeio(fd,factor, argv[1]);
 	}
 	else

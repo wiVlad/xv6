@@ -79,13 +79,9 @@ runcmd(struct cmd *cmd)
     if(ecmd->argv[0] == 0)
       exit(0);
     exec(ecmd->argv[0], ecmd->argv);
-	//TO INSERT CODE HERE:
-	//	for(0=>9) exec(ecmd->paths[i]/  <-------- ITERATE ALL PATHS
 	char temp[512];
 	for(int i=0;i<10;i++){
 		strcpy(temp,paths[i]);
-		//memmove(paths[i]+(strlen(paths[i])), ecmd->argv[0], strlen(ecmd->argv[0]));
-		//printf(2, "%s\n", paths[i]);
 		strcpy((temp+strlen(temp)), ecmd->argv[0]);
    		exec(temp, ecmd->argv);
     	}
