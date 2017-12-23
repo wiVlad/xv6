@@ -176,6 +176,7 @@ UPROGS=\
 	_zombie\
 	_tee\
 	_pipeio\
+	_pipeProc\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

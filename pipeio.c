@@ -123,7 +123,7 @@ pipeio(int fd, int factor, char* filename)	{  //create 4 pipes - cyclic communic
 				}
 				toArray(value, bufout);			//convert to string
 				write(p0[1], bufout, 256);		//write to first pipe
-				//wait for children				
+				//wai	t for children				
 				wait(&status1);
 				wait(&status2);	
 				wait(&status3);

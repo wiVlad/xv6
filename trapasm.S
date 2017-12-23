@@ -23,6 +23,8 @@ alltraps:
   # Return falls through to trapret...
 .globl trapret
 trapret:
+
+
   popal
   popl %gs
   popl %fs
